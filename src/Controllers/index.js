@@ -4,6 +4,6 @@ Loginbtn.addEventListener('click',handler);
 
 function handler(){
     setTimeout(()=>{
-        document.location="login.html";
+        window.location.href = "src/view/login.html";
     },2000);
 }
