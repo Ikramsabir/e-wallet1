@@ -13,6 +13,7 @@ function handler2(){
     submitbtn.textContent="Serch !!!!";
     if(email==="" || pass===""){
         alert("les cases sont vides");
+        submitbtn.textContent = "Se connecter";
         return;
     }else{
         setTimeout(()=>{
