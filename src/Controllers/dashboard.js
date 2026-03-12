@@ -5,7 +5,6 @@ let monthlyIncome = document.querySelector("#monthlyIncome");
 let monthlyExpenses = document.querySelector("#monthlyExpenses");
 let activeCards = document.querySelector("#activeCards");
 
-// تحديث الواجهة بالبيانات
 if (us) {
     greetingName.textContent = us.name;
     availableBalance.textContent = `${us.wallet.balance} ${us.wallet.currency}`;
@@ -23,20 +22,17 @@ if (us) {
     activeCards.textContent = us.wallet.cards.length;
 }
 
-// السليكتورات الخاصة بـ التحويل (Transfer)
 const quickTransfer = document.querySelector("#quickTransfer");
 const transferSection = document.querySelector("#transfer-section");
 const closeTransferBtn = document.querySelector("#closeTransferBtn");
 const cancelTransferBtn = document.querySelector("#cancelTransferBtn");
 const transferForm = document.querySelector("#transferForm");
 
-// --- Event Listeners باستعمال أسماء الدوال ---
 quickTransfer.addEventListener("click", showTransferSection);
 closeTransferBtn.addEventListener("click", hideTransferSection);
 cancelTransferBtn.addEventListener("click", hideTransferSection);
 transferForm.addEventListener("submit", handleTransferSubmit);
 
-// --- تعريف الدوال (Functions) ---
 
 function showTransferSection() {
     transferSection.classList.remove("hidden");
@@ -52,25 +48,21 @@ function handleTransferSubmit(e) {
     const beneficiaryValue = document.querySelector("#beneficiary").value;
     const amount = parseFloat(document.querySelector("#amount").value);
 
-    // 1️⃣ التحقق من المستفيد
     if (!beneficiaryValue) {
         alert("Choisir un bénéficiaire");
         return;
     }
 
-    // 2️⃣ التحقق من المبلغ
     if (amount <= 0 || isNaN(amount)) {
         alert("Montant invalide");
         return;
     }
 
-    // 3️⃣ التحقق من الرصيد
     if (amount > us.wallet.balance) {
         alert("Solde insuffisant");
         return;
     }
 
-    // 4️⃣ إنشاء عملية سحب (Debit)
     const debitTransaction = {
         id: Date.now(),
         type: "debit",
@@ -81,7 +73,6 @@ function handleTransferSubmit(e) {
 
     us.wallet.transactions.push(debitTransaction);
 
-    // 5️⃣ تحديث الرصيد وحفظ البيانات
     us.wallet.balance -= amount;
     sessionStorage.setItem("us", JSON.stringify(us));
 
@@ -89,7 +80,6 @@ function handleTransferSubmit(e) {
     location.reload();
 }
 
-// --- تعبئة البطاقات والمستفيدين ---
 const sourceCard = document.querySelector("#sourceCard");
 if (us) {
     us.wallet.cards.forEach(card => {
@@ -104,6 +94,7 @@ const beneficiarySelect = document.querySelector("#beneficiary");
 if (us) {
     const names = new Set();
     us.wallet.transactions.forEach(t => {
+        
         if (t.from && t.from !== us.name) names.add(t.from);
         if (t.to && t.to !== us.name && isNaN(t.to)) names.add(t.to);
     });
