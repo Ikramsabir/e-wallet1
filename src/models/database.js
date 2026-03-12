@@ -32,7 +32,11 @@ currency:"MAD",
 cards:[
 {numcards:"987654", type:"visa",balance:8000,expiry:"11-09-27",vcc:"333"}
 ],
-transactions:[]
+transactions:[
+{ id:"4", type:"credit", amount:300, date:"10-08-25", from:"Ali", to:"987654"},
+{ id:"5", type:"debit", amount:120, date:"11-08-25", from:"987654", to:"Netflix"},
+{ id:"6", type:"credit", amount:500, date:"12-08-25", from:"Youssef", to:"987654"}
+]
 }
 },
 
@@ -47,7 +51,11 @@ currency:"MAD",
 cards:[
 {numcards:"456789", type:"mastercard",balance:5000,expiry:"10-05-28",vcc:"222"}
 ],
-transactions:[]
+transactions:[
+{ id:"7", type:"credit", amount:200, date:"09-08-25", from:"Ali", to:"456789"},
+{ id:"8", type:"debit", amount:80, date:"10-08-25", from:"456789", to:"Spotify"},
+{ id:"9", type:"credit", amount:150, date:"11-08-25", from:"Ahmed", to:"456789"}
+]
 }
 }
 
