@@ -10,7 +10,7 @@ submitbtn.addEventListener("click",handler2);
 function handler2(){
     let email=mail.value;
     let pass=password.value;
-    submitbtn.textContent="Serch !!!!";
+    submitbtn.textContent="Search!!!!";
     if(email==="" || pass===""){
         alert("les cases sont vides");
         submitbtn.textContent = "Se connecter";
