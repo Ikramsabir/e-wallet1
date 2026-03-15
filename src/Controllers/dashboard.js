@@ -106,3 +106,35 @@ if (us) {
         beneficiarySelect.appendChild(option);
     });
 }
+
+
+
+const transactionsContainer = document.querySelector("#recentTransactionsList");
+
+if(us && us.wallet.transactions){
+
+transactionsContainer.innerHTML="";
+
+us.wallet.transactions.slice().reverse().forEach(t=>{
+
+const div=document.createElement("div");
+div.classList.add("transaction-item");
+
+const sign = t.type==="credit" ? "+" : "-";
+
+div.innerHTML=`
+<div class="transaction-info">
+<span class="transaction-name">${t.from || t.beneficiary || "Transaction"}</span>
+<span class="transaction-date">${t.date}</span>
+</div>
+
+<div class="transaction-amount ${t.type}">
+${sign}${t.amount} ${us.wallet.currency}
+</div>
+`;
+
+transactionsContainer.appendChild(div);
+
+});
+
+}
