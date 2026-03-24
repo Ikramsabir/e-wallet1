@@ -19,7 +19,7 @@ function handler2(){
         setTimeout(()=>{
             let user=finduserbymail(email,pass);
             if(user){
-                sessionStorage.setItem("us", JSON.stringify(user));
+                sessionStorage.setItem("currentUser", JSON.stringify(user));
                 document.location="dashboard.html";
             }else{
                 submitbtn.textContent = "Se connecter";
