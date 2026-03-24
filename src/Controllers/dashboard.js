@@ -1,4 +1,4 @@
-import {getbeneficiaries ,finduserbyaccount,findbeneficiarieByid} from "../Model/database.js";
+import {getbeneficiaries ,finduserbyaccount,findbeneficiarieByid} from "../models/database.js";
 const user = JSON.parse(sessionStorage.getItem("currentUser"));
 
 // DOM elements
