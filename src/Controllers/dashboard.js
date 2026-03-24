@@ -1,180 +1,241 @@
-const us = JSON.parse(sessionStorage.getItem("us"));
-let greetingName = document.querySelector("#greetingName");
-let availableBalance = document.querySelector("#availableBalance");
-let monthlyIncome = document.querySelector("#monthlyIncome");
-let monthlyExpenses = document.querySelector("#monthlyExpenses");
-let activeCards = document.querySelector("#activeCards");
+import {getbeneficiaries ,finduserbyaccount,findbeneficiarieByid} from "../Model/database.js";
+const user = JSON.parse(sessionStorage.getItem("currentUser"));
 
-if (us) {
-    greetingName.textContent = us.name;
-    availableBalance.textContent = `${us.wallet.balance} ${us.wallet.currency}`;
+// DOM elements
+const greetingName = document.getElementById("greetingName");
+const currentDate = document.getElementById("currentDate");
+const solde = document.getElementById("availableBalance");
+const incomeElement = document.getElementById("monthlyIncome");
+const expensesElement = document.getElementById("monthlyExpenses");
+const activecards = document.getElementById("activeCards");
+const transactionsList = document.getElementById("recentTransactionsList");
+const transferBtn = document.getElementById("quickTransfer");
+const transferSection = document.getElementById("transferPopup");
+const closeTransferBtn = document.getElementById("closeTransferBtn");
+const cancelTransferBtn = document.getElementById("cancelTransferBtn");
+const beneficiarySelect = document.getElementById("beneficiary");
+const sourceCard = document.getElementById("sourceCard");
+const submitTransferBtn = document.getElementById("submitTransferBtn");
 
-    const revenus = us.wallet.transactions
-        .filter(t => t.type === "credit")
-        .reduce((s, t) => s + t.amount, 0);
-    monthlyIncome.textContent = `${revenus} ${us.wallet.currency}`;
-
-    const depense = us.wallet.transactions
-        .filter(t => t.type === "debit")
-        .reduce((s, t) => s + t.amount, 0);
-    monthlyExpenses.textContent = `${depense} ${us.wallet.currency}`;
-
-    activeCards.textContent = us.wallet.cards.length;
+// Guard
+if (!user) {
+  alert("User not authenticated");
+  window.location.href = "/index.html";
 }
 
-const quickTransfer = document.querySelector("#quickTransfer");
-const transferSection = document.querySelector("#transfer-section");
-const closeTransferBtn = document.querySelector("#closeTransferBtn");
-const cancelTransferBtn = document.querySelector("#cancelTransferBtn");
-const transferForm = document.querySelector("#transferForm");
-const sourceCard = document.querySelector("#sourceCard");
-const beneficiarySelect = document.querySelector("#beneficiary");
-const transactionsContainer = document.querySelector("#recentTransactionsList");
+// Events
+transferBtn.addEventListener("click", handleTransfersection);
+closeTransferBtn.addEventListener("click", closeTransfer);
+cancelTransferBtn.addEventListener("click", closeTransfer);
+submitTransferBtn.addEventListener("click", handleTransfer);
 
-quickTransfer.addEventListener("click", showTransferSection);
-closeTransferBtn.addEventListener("click", hideTransferSection);
-cancelTransferBtn.addEventListener("click", hideTransferSection);
-transferForm.addEventListener("submit", handleTransferSubmit);
+// Retrieve dashboard data
+const getDashboardData = () => {
+  const monthlyIncome = user.wallet.transactions
+    .filter(t => t.type === "credit")
+    .reduce((total, t) => total + t.amount, 0);
 
-function showTransferSection() {
-    transferSection.classList.remove("hidden");
+  const monthlyExpenses = user.wallet.transactions
+    .filter(t => t.type === "debit")
+    .reduce((total, t) => total + t.amount, 0);
+
+  return {
+    userName: user.name,
+    currentDate: new Date().toLocaleDateString("fr-FR"),
+    availableBalance: `${user.wallet.balance} ${user.wallet.currency}`,
+    activeCards: user.wallet.cards.length,
+    monthlyIncome: `${monthlyIncome} MAD`,
+    monthlyExpenses: `${monthlyExpenses} MAD`,
+  };
+};
+
+function renderDashboard() {
+  const dashboardData = getDashboardData();
+
+  if (dashboardData) {
+    greetingName.textContent = dashboardData.userName;
+    currentDate.textContent = dashboardData.currentDate;
+    solde.textContent = dashboardData.availableBalance;
+    incomeElement.textContent = dashboardData.monthlyIncome;
+    expensesElement.textContent = dashboardData.monthlyExpenses;
+    activecards.textContent = dashboardData.activeCards;
+  }
+
+  // Display transactions
+  transactionsList.innerHTML = "";
+  user.wallet.transactions.forEach(transaction => {
+    const transactionItem = document.createElement("div");
+    transactionItem.className = "transaction-item";
+    transactionItem.innerHTML = `
+      <div>${transaction.date}</div>
+      <div>${transaction.amount} MAD</div>
+      <div>${transaction.type}</div>
+    `;
+    transactionsList.appendChild(transactionItem);
+  });
+}
+renderDashboard();
+
+// Transfer popup
+function closeTransfer() {
+  transferSection.classList.remove("active");
+  document.body.classList.remove("popup-open");
 }
 
-function hideTransferSection() {
-    transferSection.classList.add("hidden");
+function handleTransfersection() {
+  transferSection.classList.add("active");
+  document.body.classList.add("popup-open");
 }
 
-function handleTransferSubmit(e) {
-    e.preventDefault();
+// Beneficiaries
+const beneficiaries = getbeneficiaries(user.id);
 
-    const transferData = {
-        beneficiary: document.querySelector("#beneficiary").value,
-        sourceCard: document.querySelector("#sourceCard").value,
-        amount: parseFloat(document.querySelector("#amount").value)
-    };
+function renderBeneficiaries() {
+  beneficiaries.forEach((beneficiary) => {
+    const option = document.createElement("option");
+    option.value = beneficiary.id;
+    option.textContent = beneficiary.name;
+    beneficiarySelect.appendChild(option);
+  });
+}
+renderBeneficiaries();
 
-    checkBeneficiary(transferData)
-        .then(checkAmount)
-        .then(checkSolde)
-        .then(createDebitTransaction)
-        .then(saveTransfer)
-        .then(showSuccess)
-        .catch(showError);
+function renderCards() {
+  user.wallet.cards.forEach((card) => {
+    const option = document.createElement("option");
+    option.value = card.numcards;
+    option.textContent = card.type + "****" + card.numcards;
+    sourceCard.appendChild(option);
+  });
+}
+renderCards();
+
+//###################################  Transfer  #####################################################//
+
+// check function 
+
+function checkUser(numcompte) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const beneficiary = finduserbyaccount(numcompte);
+
+      if (beneficiary) {
+        resolve(beneficiary);
+      } else {
+        reject("beneficiary not found");
+      }
+    }, 2000);
+  });
 }
 
-function checkBeneficiary(data) {
-    return new Promise((resolve, reject) => {
-        if (!data.beneficiary) {
-            reject("Choisir un bénéficiaire");
-        } else {
-            resolve(data);
-        }
+function checkSolde(expediteur, amount) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (expediteur.wallet.balance >= amount) {
+        resolve("Sufficient balance");
+      } else {
+        reject("Insufficient balance");
+      }
+    }, 3000);
+  });
+}
+
+function updateSolde(expediteur, destinataire, amount) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      expediteur.wallet.balance -= amount;
+      destinataire.wallet.balance += amount;
+      resolve("update balance done");
+    }, 200);
+  });
+}
+
+function addtransactions(expediteur, destinataire, amount) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // create credit transaction
+      const credit = {
+        id: Date.now(),
+        type: "credit",
+        amount: amount,
+        date: new Date().toLocaleString(),
+        from: expediteur.name
+      };
+
+      // create debit transaction
+      const debit = {
+        id: Date.now() + 1,
+        type: "debit",
+        amount: amount,
+        date: new Date().toLocaleString(),
+        to: destinataire.name
+      };
+
+      expediteur.wallet.transactions.push(debit);
+      destinataire.wallet.transactions.push(credit);
+
+      resolve("transaction added successfully");
+    }, 3000);
+  });
+}
+
+// **************************************transfer***************************************************//
+
+function transfer(expediteur, numcompte, amount) {
+  let savedDestinataire;
+
+  checkUser(numcompte)
+    .then((destinataire) => {
+      savedDestinataire = destinataire;
+      console.log("Étape 1: Destinataire trouvé -", destinataire.name);
+      return checkSolde(expediteur, amount);
+    })
+    .then((soldemessage) => {
+      console.log(soldemessage);
+      return updateSolde(expediteur, savedDestinataire, amount);
+    })
+    .then((updatemessage) => {
+      console.log(updatemessage);
+      return addtransactions(expediteur, savedDestinataire, amount);
+    })
+    .then((addtransactionMessage) => {
+      console.log(addtransactionMessage);
+
+      sessionStorage.setItem("currentUser", JSON.stringify(expediteur));
+      renderDashboard();
+      closeTransfer();
+      alert("Transfert réussi !");
+    })
+    .catch((error) => {
+      console.log(error);
+      alert(error);
     });
 }
 
-function checkAmount(data) {
-    return new Promise((resolve, reject) => {
-        if (isNaN(data.amount) || data.amount <= 0) {
-            reject("Montant invalide");
-        } else {
-            resolve(data);
-        }
-    });
-}
+function handleTransfer(e) {
+  e.preventDefault();
 
-function checkSolde(data) {
-    return new Promise((resolve, reject) => {
-        if (data.amount > us.wallet.balance) {
-            reject("Solde insuffisant");
-        } else {
-            resolve(data);
-        }
-    });
-}
+  const beneficiaryId = document.getElementById("beneficiary").value;
+  const beneficiaryData = findbeneficiarieByid(user.id, beneficiaryId);
 
-function createDebitTransaction(data) {
-    return new Promise((resolve) => {
-        const transaction = {
-            id: Date.now(),
-            type: "debit",
-            amount: data.amount,
-            from: data.sourceCard,
-            to: data.beneficiary,
-            date: new Date().toLocaleDateString()
-        };
+  if (!beneficiaryData) {
+    alert("Choisir un bénéficiaire");
+    return;
+  }
 
-        us.wallet.transactions.push(transaction);
-        us.wallet.balance -= data.amount;
+  const beneficiaryAccount = beneficiaryData.account;
+  const sourceCardValue = document.getElementById("sourceCard").value;
+  const amount = Number(document.getElementById("amount").value);
 
-        resolve(data);
-    });
-}
+  if (!sourceCardValue) {
+    alert("Choisir une carte");
+    return;
+  }
 
-function saveTransfer(data) {
-    return new Promise((resolve) => {
-        sessionStorage.setItem("us", JSON.stringify(us));
-        resolve(data);
-    });
-}
+  if (isNaN(amount) || amount <= 0) {
+    alert("Montant invalide");
+    return;
+  }
 
-function showSuccess() {
-    alert("Transfert réussi");
-    location.reload();
-}
-
-function showError(message) {
-    alert(message);
-}
-
-if (us) {
-    us.wallet.cards.forEach(card => {
-        const option = document.createElement("option");
-        option.value = card.numcards;
-        option.textContent = `${card.type} ****${card.numcards.slice(-4)}`;
-        sourceCard.appendChild(option);
-    });
-}
-
-if (us) {
-    const names = new Set();
-
-    us.wallet.transactions.forEach(t => {
-        if (t.from && t.from !== us.name && isNaN(t.from)) {
-            names.add(t.from);
-        }
-
-        if (t.to && t.to !== us.name && isNaN(t.to)) {
-            names.add(t.to);
-        }
-    });
-
-    names.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        beneficiarySelect.appendChild(option);
-    });
-}
-
-if (us && us.wallet.transactions) {
-    transactionsContainer.innerHTML = "";
-
-    us.wallet.transactions.slice().reverse().forEach(t => {
-        const div = document.createElement("div");
-        div.classList.add("transaction-item");
-
-        const sign = t.type === "credit" ? "+" : "-";
-
-        div.innerHTML = `
-            <div class="transaction-info">
-                <span class="transaction-name">${t.to || t.from || "Transaction"}</span>
-                <span class="transaction-date">${t.date}</span>
-            </div>
-            <div class="transaction-amount ${t.type}">
-                ${sign}${t.amount} ${us.wallet.currency}
-            </div>
-        `;
-
-        transactionsContainer.appendChild(div);
-    });
+  transfer(user, beneficiaryAccount, amount);
 }
