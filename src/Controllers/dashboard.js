@@ -263,7 +263,7 @@ function updateSolde(exp, destinataire, amount) {
 function addtransactions(exp, destinataire, amount, selectedCard) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Transaction pour l'expéditeur (débit)
+
       const transactionDebit = {
         id: Date.now(),
         type: "debit",
@@ -273,7 +273,7 @@ function addtransactions(exp, destinataire, amount, selectedCard) {
         date: new Date().toLocaleDateString()
       };
 
-      // Transaction pour le destinataire (crédit)
+
       const transactionCredit = {
         id: Date.now() + 1,
         type: "credit",
