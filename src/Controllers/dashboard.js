@@ -298,25 +298,21 @@ function transferer(exp, numcompte, amount, selectedCard) {
 
   let savedDestinataire;
 
-  // Étape 1: Vérifier le destinataire
   checkUser(numcompte)
     .then((destinataire) => {
       savedDestinataire = destinataire;
       console.log("Étape 1: Destinataire trouvé -", destinataire.name);
 
-      // Étape 2: Vérifier le solde
       return checkSolde(exp, amount);
     })
     .then((soldemessage) => {
       console.log("Étape 2:", soldemessage);
 
-      // Étape 3: Mettre à jour les soldes
       return updateSolde(exp, savedDestinataire, amount);
     })
     .then((updatemessage) => {
       console.log("Étape 3:", updatemessage);
 
-      // Étape 4: Enregistrer la transaction
       return addtransactions(exp, savedDestinataire, amount, selectedCard);
     })
     .then((transactionMessage) => {
