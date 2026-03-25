@@ -249,6 +249,65 @@
       </div>
     </form>
     </div>
+    <section id="recharge-section" class="recharge-section hidden">
+  <div class="section-header">
+    <h2>Effectuer un rechargement</h2>
+    <button class="btn btn-close" id="closeRechargeBtn">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+<!---Recharger   -->
+
+  <div class="recharge-container">
+    <form id="rechargeForm" class="recharge-form">
+
+      <div class="form-group">
+        <label for="rechargeCard">
+          <i class="fas fa-credit-card"></i> Depuis ma carte
+        </label>
+        <select id="rechargeCard" name="rechargeCard" required>
+          <option value="" disabled selected>Sélectionner une carte</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="rechargeAmount">
+          <i class="fas fa-euro-sign"></i> Montant
+        </label>
+        <div class="amount-input">
+          <input
+            type="number"
+            id="rechargeAmount"
+            name="rechargeAmount"
+            min="1"
+            step="0.01"
+            placeholder="0.00"
+            required
+          >
+          <span class="currency">MAD</span>
+        </div>
+      </div>
+
+      <div class="recharge-info-box">
+        <p>
+          <i class="fas fa-info-circle"></i>
+          Le montant sera ajouté directement à votre wallet après validation.
+        </p>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" id="cancelRechargeBtn">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" id="submitRechargeBtn">
+          <i class="fas fa-plus-circle"></i> Recharger
+        </button>
+      </div>
+
+    </form>
+  </div>
+</section>
   <!-- Footer -->
   <footer>
     <p>&copy; 2026 E-Wallet. Tous droits réservés.</p>

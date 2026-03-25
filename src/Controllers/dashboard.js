@@ -1,4 +1,4 @@
-import { getbeneficiaries, finduserbyaccount, findbeneficiarieByid } from "../models/database.js";
+import { getbeneficiaries, finduserbyaccount, findbeneficiarieByid ,findcardsbyanumcards} from "../models/database.js";
 
 const user = JSON.parse(sessionStorage.getItem("currentUser"));
 
@@ -298,12 +298,12 @@ function transferer(exp, numcompte, amount, selectedCard) {
 
   let savedDestinataire;
 
-  checkUser(numcompte)
-    .then((destinataire) => {
+  checkUser(numcompte) //p0
+    .then((destinataire) => {// p1
       savedDestinataire = destinataire;
       console.log("Étape 1: Destinataire trouvé -", destinataire.name);
 
-      return checkSolde(exp, amount);
+      return checkSolde(exp, amount); //p2
     })
     .then((soldemessage) => {
       console.log("Étape 2:", soldemessage);
@@ -364,4 +364,109 @@ function handleTransfer(e) {
   const beneficiaryAccount = beneficiaryObject.account;
 
   transferer(user, beneficiaryAccount, amount, selectedCard);
+}
+
+
+
+function checkCard(numcards){
+  return new Promise((resolve,reject)=>{
+  setTimeout(()=>{
+    const cards=findcardsbyanumcards(numcards);
+    if(cards){
+      resolve(cards);
+    }else{
+      reject("ne trouve pas la carte");
+    }
+  },400);
+  });
+}
+
+function checkamout(amount){
+  return new Promise((resolve,reject)=>{
+    setTimeout(()=>{
+    if(!isNaN(amount) && amount > 0){
+        resolve("Montant valide");
+      }else{
+        reject("Montant invalide");
+      }
+    },400);
+  });
+}
+
+function checkexpery(numcards){
+  return new Promise((resolve,reject)=>{
+    setTimeout(() => {
+      const cadrs=findcardsbyanumcards(numcards);
+      const today=new Date();
+      const expyday=new Date(cadrs.expiry);
+      if(expyday>today){
+        resolve("Carte valide");
+      }else{
+        reject("Carte expire");
+      }
+     },400);
+});
+}
+
+function addbalance(user,amount){
+  return new Promise((resolve)=>{
+    setTimeout(()=>{
+      user.wallet.balance+=amount;
+      resolve("Bien !");
+    },400);
+  });
+}
+
+function addrechargetransaction(user,amount,carts){
+  return new Promise((resolve)=>{
+    setTimeout(()=>{
+      const transaction={
+        id:new Date(),
+        type:"recharge",
+        amount:amount,
+        date:new Date().toLocaleDateString(),
+        from:carts,
+        to:"Wallet"
+      };
+      user.wallet.transactions.push(transaction);
+      resolve("Bien !");
+    },400);
+  });
+}
+
+
+function recharge(user,amount,cards){
+  
+  checkCard(cards)
+  .then((cards)=>{
+    let selectedcards=cards;
+    console.log("Etape 1 : "+cards);
+    return checkamout(amount);
+  })
+  .then((setmessage)=>{
+      console.log("Etape 2 : "+setmessage);
+      return checkexpery(cards);
+    })
+    .then((setexpry)=>{
+        console.log("Etape 3 : "+setexpry);
+        return addbalance(user,amount);
+      })
+      .then((setadd)=>{
+        console.log("Etape 4 : "+setadd);
+        return addrechargetransaction(user,amount,cards);
+      })
+      .then((setrec)=>{
+      console.log("Etape : 5"+setrec);
+      sessionStorage.setItem("currentUser", JSON.stringify(exp));
+      renderDashboard();
+      closeTransfer();
+      transferForm.reset();
+      alert(`Recharger de ${amount} réussi!`);
+      })
+      .catch((error)=>{
+        console.log(error);
+        alert(error);
+      })
+      
+
 }

@@ -1130,3 +1130,155 @@ footer {
     display: none;
   }
 }
+
+
+/*css de Recharger*/
+
+.recharge-section {
+  margin-top: 30px;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  animation: fadeInUp 0.35s ease;
+}
+
+.recharge-container {
+  margin-top: 20px;
+}
+
+.recharge-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-group label {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group label i {
+  margin-right: 8px;
+  color: #5b6cff;
+}
+
+.recharge-form select,
+.recharge-form input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #d9d9e6;
+  border-radius: 12px;
+  font-size: 15px;
+  outline: none;
+  transition: 0.25s ease;
+  background: #fafaff;
+}
+
+.recharge-form select:focus,
+.recharge-form input:focus {
+  border-color: #5b6cff;
+  box-shadow: 0 0 0 3px rgba(91, 108, 255, 0.12);
+  background: #fff;
+}
+
+.amount-input {
+  position: relative;
+}
+
+.amount-input input {
+  padding-right: 70px;
+}
+
+.currency {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-weight: 600;
+}
+
+.recharge-info-box {
+  background: #f5f7ff;
+  border: 1px solid #dfe5ff;
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: #445;
+  font-size: 14px;
+}
+
+.recharge-info-box i {
+  color: #5b6cff;
+  margin-right: 8px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.btn-primary {
+  background: #5b6cff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #4859ea;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: #eef1f8;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background: #dfe5f2;
+}
+
+.btn-close {
+  background: transparent;
+  font-size: 18px;
+  color: #666;
+  padding: 8px 12px;
+}
+
+.btn-close:hover {
+  color: #111;
+  background: #f2f2f7;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
