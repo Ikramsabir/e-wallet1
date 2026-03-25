@@ -16,8 +16,6 @@ const closeTransferBtn = document.getElementById("closeTransferBtn");
 const cancelTransferBtn = document.getElementById("cancelTransferBtn");
 const beneficiarySelect = document.getElementById("beneficiary");
 const sourceCard = document.getElementById("sourceCard");
-const submitTransferBtn = document.getElementById("submitTransferBtn");
-const amountInput = document.getElementById("amount");
 const transferForm = document.getElementById("transferForm");
 
 // Guard
@@ -55,38 +53,37 @@ const getDashboardData = () => {
 function renderDashboard() {
   const dashboardData = getDashboardData();
 
-  greetingName.textContent = dashboardData.userName;
-  currentDate.textContent = dashboardData.currentDate;
-  solde.textContent = dashboardData.availableBalance;
-  incomeElement.textContent = dashboardData.monthlyIncome;
-  expensesElement.textContent = dashboardData.monthlyExpenses;
-  activecards.textContent = dashboardData.activeCards;
+  if (dashboardData) {
+    greetingName.textContent = dashboardData.userName;
+    currentDate.textContent = dashboardData.currentDate;
+    solde.textContent = dashboardData.availableBalance;
+    incomeElement.textContent = dashboardData.monthlyIncome;
+    expensesElement.textContent = dashboardData.monthlyExpenses;
+    activecards.textContent = dashboardData.activeCards;
+  }
 
   // Display transactions
   transactionsList.innerHTML = "";
 
-  user.wallet.transactions
-    .slice()
-    .reverse()
-    .forEach(transaction => {
-      const transactionItem = document.createElement("div");
-      transactionItem.className = "transaction-item";
+  user.wallet.transactions.slice().reverse().forEach(transaction => {
+    const transactionItem = document.createElement("div");
+    transactionItem.className = "transaction-item";
 
-      const sign = transaction.type === "credit" ? "+" : "-";
-      const person = transaction.to || transaction.from || "Transaction";
+    const sign = transaction.type === "credit" ? "+" : "-";
+    const person = transaction.to || transaction.from || "Transaction";
 
-      transactionItem.innerHTML = `
-        <div class="transaction-info">
-          <span class="transaction-name">${person}</span>
-          <span class="transaction-date">${transaction.date}</span>
-        </div>
-        <div class="transaction-amount ${transaction.type}">
-          ${sign}${transaction.amount} ${user.wallet.currency}
-        </div>
-      `;
+    transactionItem.innerHTML = `
+      <div class="transaction-info">
+        <span class="transaction-name">${person}</span>
+        <span class="transaction-date">${transaction.date}</span>
+      </div>
+      <div class="transaction-amount ${transaction.type}">
+        ${sign}${transaction.amount} ${user.wallet.currency}
+      </div>
+    `;
 
-      transactionsList.appendChild(transactionItem);
-    });
+    transactionsList.appendChild(transactionItem);
+  });
 }
 
 renderDashboard();
@@ -117,8 +114,10 @@ function renderBeneficiaries() {
     beneficiarySelect.appendChild(option);
   });
 }
+
 renderBeneficiaries();
 
+// Cards
 function renderCards() {
   sourceCard.innerHTML = `<option value="" disabled selected>Sélectionner une carte</option>`;
 
@@ -129,109 +128,210 @@ function renderCards() {
     sourceCard.appendChild(option);
   });
 }
+
 renderCards();
 
 //###################################  Transfer  #####################################################//
 
-// check function
+// check function 
+
+/* function checkUser(numcompte, callback) {
+  setTimeout(() => {
+    const destinataire = finduserbyaccount(numcompte);
+    if (destinataire) {
+      callback(destinataire);
+    } else {
+      console.log("Destinataire non trouvé");
+    }
+  }, 500);
+}
+
+function checkSolde(exp, amount, callback) {
+  setTimeout(() => {
+    const solde = exp.wallet.balance;
+    if (solde >= amount) {
+      callback("Solde suffisant");
+    } else {
+      callback("Solde insuffisant");
+    }
+  }, 400);
+}
+
+function updateSolde(exp, destinataire, amount, callback) {
+  setTimeout(() => {  
+    exp.wallet.balance -= amount;
+    destinataire.wallet.balance += amount;
+    callback("Solde mis à jour");
+  }, 300);
+}
+
+function addtransactions(exp, destinataire, amount, callback) {
+  setTimeout(() => { 
+    // Transaction pour l'expéditeur (débit)
+    const transactionDebit = {
+      id: Date.now(),
+      type: "debit",
+      amount: amount,
+      from: exp.name,
+      to: destinataire.name,
+      date: new Date().toLocaleDateString()
+    };
+
+    // Transaction pour le destinataire (crédit)
+    const transactionCredit = {
+      id: Date.now() + 1,
+      type: "credit",
+      amount: amount,
+      from: exp.name,
+      to: destinataire.name,
+      date: new Date().toLocaleDateString()
+    };
+
+    exp.wallet.transactions.push(transactionDebit);
+    destinataire.wallet.transactions.push(transactionCredit);
+    renderDashboard();
+    callback("Transaction enregistrée");
+  }, 200);
+}
+
+function transferer(exp, numcompte, amount) {
+  console.log("\n DÉBUT DU TRANSFERT ");
+
+  // Étape 1: Vérifier le destinataire
+  checkUser(numcompte, function afterCheckUser(destinataire) {
+    console.log("Étape 1: Destinataire trouvé -", destinataire.name);
+
+    // Étape 2: Vérifier le solde
+    checkSolde(exp, amount, function afterCheckSolde(soldemessage) {
+      console.log(" Étape 2:", soldemessage);
+
+      if (soldemessage.includes("Solde suffisant")) {
+        // Étape 3: Mettre à jour les soldes
+        updateSolde(exp, destinataire, amount, function afterUpdateSolde(updatemessage) {
+          console.log(" Étape 3:", updatemessage);
+
+          // Étape 4: Enregistrer la transaction
+          addtransactions(exp, destinataire, amount, function afterAddTransactions(transactionMessage) {
+            console.log(" Étape 4:", transactionMessage);
+            console.log(`Transfert de ${amount} réussi!`);
+          });
+        });
+      }
+    });
+  });
+} */
+
 
 function checkUser(numcompte) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      const beneficiary = finduserbyaccount(numcompte);
+      const destinataire = finduserbyaccount(numcompte);
 
-      if (beneficiary) {
-        resolve(beneficiary);
+      if (destinataire) {
+        resolve(destinataire);
       } else {
-        reject("beneficiary not found");
+        reject("Destinataire non trouvé");
       }
     }, 500);
   });
 }
 
-function checkSolde(expediteur, amount) {
+function checkSolde(exp, amount) {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      if (expediteur.wallet.balance >= amount) {
-        resolve("Sufficient balance");
+      const soldeActuel = exp.wallet.balance;
+
+      if (soldeActuel >= amount) {
+        resolve("Solde suffisant");
       } else {
-        reject("Insufficient balance");
+        reject("Solde insuffisant");
       }
-    }, 500);
+    }, 400);
   });
 }
 
-function updateSolde(expediteur, destinataire, amount) {
+function updateSolde(exp, destinataire, amount) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      expediteur.wallet.balance -= amount;
+      exp.wallet.balance -= amount;
       destinataire.wallet.balance += amount;
-      resolve("update balance done");
+      resolve("Solde mis à jour");
     }, 300);
   });
 }
 
-function addtransactions(expediteur, destinataire, amount, selectedCard) {
+function addtransactions(exp, destinataire, amount, selectedCard) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // create credit transaction
-      const credit = {
+      // Transaction pour l'expéditeur (débit)
+      const transactionDebit = {
         id: Date.now(),
-        type: "credit",
-        amount: amount,
-        date: new Date().toLocaleString(),
-        from: expediteur.name,
-        to: destinataire.name
-      };
-
-      // create debit transaction
-      const debit = {
-        id: Date.now() + 1,
         type: "debit",
         amount: amount,
-        date: new Date().toLocaleString(),
         from: selectedCard,
-        to: destinataire.name
+        to: destinataire.name,
+        date: new Date().toLocaleDateString()
       };
 
-      expediteur.wallet.transactions.push(debit);
-      destinataire.wallet.transactions.push(credit);
+      // Transaction pour le destinataire (crédit)
+      const transactionCredit = {
+        id: Date.now() + 1,
+        type: "credit",
+        amount: amount,
+        from: exp.name,
+        to: destinataire.name,
+        date: new Date().toLocaleDateString()
+      };
 
-      resolve("transaction added successfully");
-    }, 500);
+      exp.wallet.transactions.push(transactionDebit);
+      destinataire.wallet.transactions.push(transactionCredit);
+
+      resolve("Transaction enregistrée");
+    }, 200);
   });
 }
 
 // **************************************transfer***************************************************//
 
-function transfer(expediteur, numcompte, amount, selectedCard) {
+function transferer(exp, numcompte, amount, selectedCard) {
+  console.log("\n DÉBUT DU TRANSFERT ");
+
   let savedDestinataire;
 
+  // Étape 1: Vérifier le destinataire
   checkUser(numcompte)
     .then((destinataire) => {
       savedDestinataire = destinataire;
       console.log("Étape 1: Destinataire trouvé -", destinataire.name);
-      return checkSolde(expediteur, amount);
+
+      // Étape 2: Vérifier le solde
+      return checkSolde(exp, amount);
     })
     .then((soldemessage) => {
-      console.log(soldemessage);
-      return updateSolde(expediteur, savedDestinataire, amount);
+      console.log("Étape 2:", soldemessage);
+
+      // Étape 3: Mettre à jour les soldes
+      return updateSolde(exp, savedDestinataire, amount);
     })
     .then((updatemessage) => {
-      console.log(updatemessage);
-      return addtransactions(expediteur, savedDestinataire, amount, selectedCard);
-    })
-    .then((addtransactionMessage) => {
-      console.log(addtransactionMessage);
+      console.log("Étape 3:", updatemessage);
 
-      sessionStorage.setItem("currentUser", JSON.stringify(expediteur));
+      // Étape 4: Enregistrer la transaction
+      return addtransactions(exp, savedDestinataire, amount, selectedCard);
+    })
+    .then((transactionMessage) => {
+      console.log("Étape 4:", transactionMessage);
+
+      sessionStorage.setItem("currentUser", JSON.stringify(exp));
       renderDashboard();
       closeTransfer();
       transferForm.reset();
-      alert("Transfert réussi !");
+
+      console.log(`Transfert de ${amount} réussi!`);
+      alert(`Transfert de ${amount} réussi!`);
     })
     .catch((error) => {
-      console.log(error);
+      console.log("Erreur :", error);
       alert(error);
     });
 }
@@ -240,15 +340,15 @@ function handleTransfer(e) {
   e.preventDefault();
 
   const beneficiaryId = beneficiarySelect.value;
-  const sourceCardValue = sourceCard.value;
-  const amount = Number(amountInput.value);
+  const selectedCard = sourceCard.value;
+  const amount = Number(document.getElementById("amount").value);
 
   if (!beneficiaryId) {
     alert("Choisir un bénéficiaire");
     return;
   }
 
-  if (!sourceCardValue) {
+  if (!selectedCard) {
     alert("Choisir une carte");
     return;
   }
@@ -258,14 +358,14 @@ function handleTransfer(e) {
     return;
   }
 
-  const beneficiaryData = findbeneficiarieByid(user.id, beneficiaryId);
+  const beneficiaryObject = findbeneficiarieByid(user.id, beneficiaryId);
 
-  if (!beneficiaryData) {
+  if (!beneficiaryObject) {
     alert("Bénéficiaire introuvable");
     return;
   }
 
-  const beneficiaryAccount = beneficiaryData.account;
+  const beneficiaryAccount = beneficiaryObject.account;
 
-  transfer(user, beneficiaryAccount, amount, sourceCardValue);
+  transferer(user, beneficiaryAccount, amount, selectedCard);
 }
