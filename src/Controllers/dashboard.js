@@ -69,7 +69,7 @@ function renderDashboard() {
     const transactionItem = document.createElement("div");
     transactionItem.className = "transaction-item";
 
-    const sign = transaction.type === "credit" ? "+" : "-";
+    const sign = (transaction.type === "credit" || transaction.type === "recharge") ? "+" : "-";
     const person = transaction.to || transaction.from || "Transaction";
 
     transactionItem.innerHTML = `
@@ -366,7 +366,48 @@ function handleTransfer(e) {
   transferer(user, beneficiaryAccount, amount, selectedCard);
 }
 
+//************************************ recharge style **************/
+const quickTopup = document.getElementById("quickTopup");
+const rechargeSection = document.getElementById("recharge-section");
+const closeRechargeBtn = document.getElementById("closeRechargeBtn");
+const cancelRechargeBtn = document.getElementById("cancelRechargeBtn");
+const rechargeForm = document.getElementById("rechargeForm");
+const submitRechargeBtn=document.getElementById("submitRechargeBtn");
 
+quickTopup.addEventListener("click", openRecharge);
+closeRechargeBtn.addEventListener("click", closeRecharge);
+cancelRechargeBtn.addEventListener("click", closeRecharge);
+rechargeForm.addEventListener("submit", handlerrecharge);
+
+function openRecharge() {
+  rechargeSection.classList.remove("hidden");
+  rechargeSection.classList.add("active");
+  document.body.classList.add("popup-open");
+}
+
+function closeRecharge() {
+  rechargeSection.classList.add("hidden");
+  rechargeSection.classList.remove("active");
+  document.body.classList.remove("popup-open");
+}
+
+
+
+const rechargeCard = document.getElementById("rechargeCard");
+
+function renderRechargeCards() {
+  rechargeCard.innerHTML = `<option value="" disabled selected>Sélectionner une carte</option>`;
+
+  user.wallet.cards.forEach((card) => {
+    const option = document.createElement("option");
+    option.value = card.numcards;
+    option.textContent = `${card.type} ****${card.numcards.slice(-4)}`;
+    rechargeCard.appendChild(option);
+  });
+}
+
+renderRechargeCards();
+/***********************recharger ******************************/
 
 function checkCard(numcards){
   return new Promise((resolve,reject)=>{
@@ -421,7 +462,7 @@ function addrechargetransaction(user,amount,carts){
   return new Promise((resolve)=>{
     setTimeout(()=>{
       const transaction={
-        id:new Date(),
+        id:Date.now(),
         type:"recharge",
         amount:amount,
         date:new Date().toLocaleDateString(),
@@ -434,39 +475,58 @@ function addrechargetransaction(user,amount,carts){
   });
 }
 
+function recharge(user, cards, amount){
+  let selectedcards;
 
-function recharge(user,amount,cards){
-  
   checkCard(cards)
-  .then((cards)=>{
-    let selectedcards=cards;
-    console.log("Etape 1 : "+cards);
-    return checkamout(amount);
-  })
-  .then((setmessage)=>{
-      console.log("Etape 2 : "+setmessage);
-      return checkexpery(cards);
+    .then((cardObject)=>{
+      selectedcards = cardObject;
+      console.log("Etape 1 : carte trouvée");
+      return checkamout(amount);
+    })
+    .then((setmessage)=>{
+      console.log("Etape 2 : " + setmessage);
+      return checkexpery(selectedcards.numcards);
     })
     .then((setexpry)=>{
-        console.log("Etape 3 : "+setexpry);
-        return addbalance(user,amount);
-      })
-      .then((setadd)=>{
-        console.log("Etape 4 : "+setadd);
-        return addrechargetransaction(user,amount,cards);
-      })
-      .then((setrec)=>{
-      console.log("Etape : 5"+setrec);
-      sessionStorage.setItem("currentUser", JSON.stringify(exp));
-      renderDashboard();
-      closeTransfer();
-      transferForm.reset();
-      alert(`Recharger de ${amount} réussi!`);
-      })
-      .catch((error)=>{
-        console.log(error);
-        alert(error);
-      })
-      
+      console.log("Etape 3 : " + setexpry);
+      return addbalance(user, amount);
+    })
+    .then((setadd)=>{
+      console.log("Etape 4 : " + setadd);
+      return addrechargetransaction(user, amount, cards);
+    })
+    .then((setrec)=>{
+      console.log("Etape 5 : " + setrec);
 
+      sessionStorage.setItem("currentUser", JSON.stringify(user));
+      renderDashboard();
+      closeRecharge();
+      rechargeForm.reset();
+
+      alert(`Recharger de ${amount} réussi!`);
+    })
+    .catch((error)=>{
+      console.log(error);
+      alert(error);
+    });
+}
+
+function handlerrecharge(e){
+  e.preventDefault();
+
+  const rechargeCard = document.getElementById("rechargeCard").value;
+  const rechargeAmount = Number(document.getElementById("rechargeAmount").value);
+
+  if(!rechargeCard){
+    alert("Doit sélectionner une carte");
+    return;
+  }
+
+  if(isNaN(rechargeAmount) || rechargeAmount <= 0){
+    alert("Montant invalide");
+    return;
+  }
+
+  recharge(user, rechargeCard, rechargeAmount);
 }
