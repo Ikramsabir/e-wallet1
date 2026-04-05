@@ -293,43 +293,34 @@ function addtransactions(exp, destinataire, amount, selectedCard) {
 
 // **************************************transfer***************************************************//
 
-function transferer(exp, numcompte, amount, selectedCard) {
+async function transferer(exp, numcompte, amount, selectedCard) {
   console.log("\n DÉBUT DU TRANSFERT ");
 
-  let savedDestinataire;
+  try {
+    const destinataire = await checkUser(numcompte);
+    console.log("Étape 1: Destinataire trouvé -", destinataire.name);
 
-  checkUser(numcompte) //p0
-    .then((destinataire) => {// p1
-      savedDestinataire = destinataire;
-      console.log("Étape 1: Destinataire trouvé -", destinataire.name);
+    const soldemessage = await checkSolde(exp, amount);
+    console.log("Étape 2:", soldemessage);
 
-      return checkSolde(exp, amount); //p2
-    })
-    .then((soldemessage) => {
-      console.log("Étape 2:", soldemessage);
+    const updatemessage = await updateSolde(exp, destinataire, amount);
+    console.log("Étape 3:", updatemessage);
 
-      return updateSolde(exp, savedDestinataire, amount);
-    })
-    .then((updatemessage) => {
-      console.log("Étape 3:", updatemessage);
+    const transactionMessage = await addtransactions(exp, destinataire, amount, selectedCard);
+    console.log("Étape 4:", transactionMessage);
 
-      return addtransactions(exp, savedDestinataire, amount, selectedCard);
-    })
-    .then((transactionMessage) => {
-      console.log("Étape 4:", transactionMessage);
+    sessionStorage.setItem("currentUser", JSON.stringify(exp));
+    renderDashboard();
+    closeTransfer();
+    transferForm.reset();
 
-      sessionStorage.setItem("currentUser", JSON.stringify(exp));
-      renderDashboard();
-      closeTransfer();
-      transferForm.reset();
+    console.log(`Transfert de ${amount} réussi!`);
+    alert(`Transfert de ${amount} réussi!`);
 
-      console.log(`Transfert de ${amount} réussi!`);
-      alert(`Transfert de ${amount} réussi!`);
-    })
-    .catch((error) => {
-      console.log("Erreur :", error);
-      alert(error);
-    });
+  } catch (error) {
+    console.log("Erreur :", error);
+    alert(error);
+  }
 }
 
 function handleTransfer(e) {
@@ -475,41 +466,34 @@ function addrechargetransaction(user,amount,carts){
   });
 }
 
-function recharge(user, cards, amount){
-  let selectedcards;
+async function recharge(user, cards, amount) {
+  try {
+    const selectedcards = await checkCard(cards);
+    console.log("Etape 1 : carte trouvée");
 
-  checkCard(cards)
-    .then((cardObject)=>{
-      selectedcards = cardObject;
-      console.log("Etape 1 : carte trouvée");
-      return checkamout(amount);
-    })
-    .then((setmessage)=>{
-      console.log("Etape 2 : " + setmessage);
-      return checkexpery(selectedcards.numcards);
-    })
-    .then((setexpry)=>{
-      console.log("Etape 3 : " + setexpry);
-      return addbalance(user, amount);
-    })
-    .then((setadd)=>{
-      console.log("Etape 4 : " + setadd);
-      return addrechargetransaction(user, amount, cards);
-    })
-    .then((setrec)=>{
-      console.log("Etape 5 : " + setrec);
+    const setmessage = await checkamout(amount);
+    console.log("Etape 2 : " + setmessage);
 
-      sessionStorage.setItem("currentUser", JSON.stringify(user));
-      renderDashboard();
-      closeRecharge();
-      rechargeForm.reset();
+    const setexpry = await checkexpery(selectedcards.numcards);
+    console.log("Etape 3 : " + setexpry);
 
-      alert(`Recharger de ${amount} réussi!`);
-    })
-    .catch((error)=>{
-      console.log(error);
-      alert(error);
-    });
+    const setadd = await addbalance(user, amount);
+    console.log("Etape 4 : " + setadd);
+
+    const setrec = await addrechargetransaction(user, amount, cards);
+    console.log("Etape 5 : " + setrec);
+
+    sessionStorage.setItem("currentUser", JSON.stringify(user));
+    renderDashboard();
+    closeRecharge();
+    rechargeForm.reset();
+
+    alert(`Recharger de ${amount} réussi!`);
+
+  } catch (error) {
+    console.log(error);
+    alert(error);
+  }
 }
 
 function handlerrecharge(e){
